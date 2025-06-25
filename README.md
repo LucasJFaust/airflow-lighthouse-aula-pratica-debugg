@@ -66,6 +66,12 @@ Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia c
 
 
 2.  **Inicie o Ambiente Airflow Local com Astro CLI:**
+     Este comando cria a estrutura de projeto que o Astro CLI espera (`.astro/` folder, `Dockerfile` e `packages.txt`).
+    ```bash
+    astro dev init
+    ```
+    *   Se for perguntado sobre sobrescrever arquivos como `Dockerfile` ou `packages.txt`, pode aceitar as opções padrão ou pular se já tiverem customizações que você queira manter (neste caso, para a aula, os padrões são suficientes).
+    *   **Opcional:** Se você tem customizações em um `Dockerfile` ou `packages.txt` que não foram criados pelo `astro dev init`, você pode movê-los para dentro da pasta `.astro/` após a inicialização. Para este laboratório, o `astro dev init` já cria o básico necessário.
     Dentro da pasta do projeto (`seu-repositorio-de-aula`), execute o comando para iniciar o ambiente Airflow local. **Este é o comando chave para começar a trabalhar. Verifique que está executando ele no diretório correto.**
     ```bash
     astro dev start
