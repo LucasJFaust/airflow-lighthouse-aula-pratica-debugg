@@ -51,7 +51,9 @@ Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia c
     cd seu-repositorio-de-aula # Navegue até a pasta do projeto
     ```
      **Verifique e prepare o `requirements.txt`:**
-    O Astro CLI utiliza o arquivo `requirements.txt` (localizado na raiz do seu projeto) para instalar as dependências Python necessárias dentro do ambiente Airflow. **Certifique-se de que este arquivo existe e contenha todas as bibliotecas que suas DAGs irão utilizar (como `requests`, `apache-airflow` na versão desejada, etc.) ANTES de iniciar o ambiente.**
+    O Astro CLI utiliza o arquivo `requirements.txt` (localizado na raiz do seu projeto) para instalar as dependências Python necessárias dentro do ambiente Airflow. **Certifique-se de que este arquivo existe e contenha todas as bibliotecas que suas DAGs irão utilizar (como `requests`,  etc.) ANTES de iniciar o ambiente.**
+
+        **⚠️ IMPORTANTE:** **NÃO inclua `apache-airflow` (ou qualquer outra variação como `apache-airflow-providers-*`) diretamente no seu `requirements.txt`.** A versão do Airflow é definida pela imagem de runtime base utilizada pelo Astro CLI. Se você precisar de uma versão específica do Airflow, ajuste a versão no `Dockerfile` dentro da pasta `.astro/`.
 
     Exemplo de `requirements.txt` para este projeto:
     ```
@@ -96,7 +98,19 @@ Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia c
 ## 4. Estrutura do Projeto
 
 Entender a estrutura do projeto é crucial para a navegação e o debugging:
-seu-repositorio-de-aula/ ├── dags/ # Contém os arquivos Python das DAGs │ ├── problem_config_and_logic_dag.py # Problema 1: Variável e Lógica │ ├── problem_stuck_sensor_dag.py # Problema 2: Sensor que trava │ ├── problem_dag_parsing_error.py # Problema 3: Erro de Parsing/Sintaxe (DAG não aparece!) │ ├── problem_resource_intensive_dag.py # Problema 4: Consumo de Recursos (OOMKilled/Lento) │ └── problem_external_connection_dag.py # Problema 5: Erro de Conexão Externa ├── data/ # Contém arquivos de dados de exemplo utilizados pelas DAGs │ └── initial_data.txt ├── .astro/ # Diretório oculto gerado pelo Astro CLI com configurações ├── .env # Arquivo de variáveis de ambiente (se usado) ├── requirements.txt # Lista de pacotes Python para o ambiente Airflow ├── docker-compose.yaml # Arquivo Docker Compose gerado pelo Astro CLI └── README.md # Este arquivo!
+seu-repositorio-de-aula/
+├── dags/ # Contém os arquivos Python das DAGs
+│ ├── problem_config_and_logic_dag.py # Problema 1: Variável e Lógica
+│ ├── problem_stuck_sensor_dag.py # Problema 2: Sensor que trava
+│ ├── problem_dag_parsing_error.py # Problema 3: Erro de Parsing/Sintaxe (DAG não aparece!)
+│ ├── problem_resource_intensive_dag.py # Problema 4: Consumo de Recursos (OOMKilled/Lento)
+│ └── problem_external_connection_dag.py # Problema 5: Erro de Conexão Externa
+├── data/ # Contém arquivos de dados de exemplo utilizados pelas DAGs
+│ └── initial_data.txt
+├── .astro/ # Diretório oculto gerado pelo Astro CLI com configurações
+├── .env # Arquivo de variáveis de ambiente (se usado)
+├── requirements.txt # Lista de pacotes Python para o ambiente Airflow
+├── docker-compose.yaml # Arquivo Docker Compose gerado pelo Astro CLI └── README.md # Este arquivo!
 
 
 ## 5. O Case Técnico - Cenários de Problemas (e como diagnosticá-los!)
