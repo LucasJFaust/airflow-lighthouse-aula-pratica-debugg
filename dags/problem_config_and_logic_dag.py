@@ -65,7 +65,7 @@ def _process_data_with_config_and_logic_error():
 
         processed_lines = []
         lines = raw_data.splitlines()
-        
+
         # Este é o ponto onde o IndexError pode ocorrer se 'lines' estiver vazio
         # Para que o erro ocorra, o initial_data.txt teria que estar vazio,
         # ou a tarefa _fetch_initial_data teria que falhar em popular o raw_data.txt
@@ -75,7 +75,7 @@ def _process_data_with_config_and_logic_error():
             print("O arquivo de dados brutos está vazio. Isso causará um IndexError se não for tratado.")
             # Intencionalmente não tratando aqui para forçar o IndexError
             raise IndexError("Dados brutos vazios, não há o que processar na primeira linha.") # Força o erro para demonstração
-        
+
         first_line = lines[0] # Se 'lines' estiver vazio, isso gera um IndexError
         processed_lines.append(first_line.upper()) # Exemplo de processamento
 
