@@ -44,15 +44,29 @@ Para que você possa executar este projeto e aproveitar a experiência prática,
 
 Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia com atenção para entender o fluxo de trabalho local com o Astro CLI.**
 
-1.  **Clone o Repositório:**
+1.  **Clone o Repositório e crie um arquivo de requirements.txt:**
     Abra seu terminal e execute:
     ```bash
     git clone https://github.com/LucasJFaust/airflow-lighthouse-aula-pratica-debugg # Substitua pela URL real do seu repositório
     cd seu-repositorio-de-aula # Navegue até a pasta do projeto
     ```
+     **Verifique e prepare o `requirements.txt`:**
+    O Astro CLI utiliza o arquivo `requirements.txt` (localizado na raiz do seu projeto) para instalar as dependências Python necessárias dentro do ambiente Airflow. **Certifique-se de que este arquivo existe e contenha todas as bibliotecas que suas DAGs irão utilizar (como `requests`, `apache-airflow` na versão desejada, etc.) ANTES de iniciar o ambiente.**
+
+    Exemplo de `requirements.txt` para este projeto:
+    ```
+    apache-airflow==2.7.2
+    requests
+    ```
+    *   **Importante:** Se você modificar o `requirements.txt` após o `astro dev start` inicial, será necessário executar `astro dev restart` (ou `astro dev kill` e `astro dev start`) para que as novas dependências sejam instaladas nos contêineres do Airflow.
+    No terminal execute:
+    ```bash
+    touch requirements.txt
+    ```
+
 
 2.  **Inicie o Ambiente Airflow Local com Astro CLI:**
-    Dentro da pasta do projeto (`seu-repositorio-de-aula`), execute o comando para iniciar o ambiente Airflow local. **Este é o comando chave para começar a trabalhar.**
+    Dentro da pasta do projeto (`seu-repositorio-de-aula`), execute o comando para iniciar o ambiente Airflow local. **Este é o comando chave para começar a trabalhar. Verifique que está executando ele no diretório correto.**
     ```bash
     astro dev start
     ```
