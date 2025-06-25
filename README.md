@@ -55,7 +55,6 @@ Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia c
 
     Exemplo de `requirements.txt` para este projeto:
     ```
-    apache-airflow==2.7.2
     requests
     ```
     *   **Importante:** Se você modificar o `requirements.txt` após o `astro dev start` inicial, será necessário executar `astro dev restart` (ou `astro dev kill` e `astro dev start`) para que as novas dependências sejam instaladas nos contêineres do Airflow.
