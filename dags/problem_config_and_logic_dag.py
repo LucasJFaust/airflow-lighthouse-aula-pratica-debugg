@@ -89,7 +89,7 @@ def _process_data_with_config_and_logic_error():
             print("\n--- AVISO INTENCIONAL (PARA ERRO DE LÓGICA) ---")
             print("O arquivo de dados brutos está vazio. Isso causará um IndexError se não for tratado.")
             # Intencionalmente levantamos o IndexError para que os alunos vejam este tipo de falha.
-            raise IndexError("Dados brutos vazios, não há o que processar na primeira linha.") 
+            raise IndexError("Dados brutos vazios, não há o que processar na primeira linha.")
 
         first_line = lines[0] # Esta linha pode gerar IndexError se 'lines' estiver vazio
         processed_lines.append(first_line.upper()) # Exemplo de processamento: converte a primeira linha para maiúsculas
