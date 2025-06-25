@@ -30,7 +30,7 @@ Para que você possa executar este projeto e aproveitar a experiência prática,
         # No PowerShell (como Administrador)
         choco install astro-cli
         ```
-        (Verifique a documentação oficial para a instalação mais atualizada para Windows).
+        (Verifique a documentação oficial para a instalação mais atualizada para Windows). 
 
     ### Verificação da Instalação do Astro CLI:
 
@@ -47,7 +47,7 @@ Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia c
 1.  **Clone o Repositório:**
     Abra seu terminal e execute:
     ```bash
-    git clone https://github.com/seu-usuario/seu-repositorio-de-aula.git # Substitua pela URL real do seu repositório
+    git clone https://github.com/LucasJFaust/airflow-lighthouse-aula-pratica-debugg # Substitua pela URL real do seu repositório
     cd seu-repositorio-de-aula # Navegue até a pasta do projeto
     ```
 
