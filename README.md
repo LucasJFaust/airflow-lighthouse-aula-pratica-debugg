@@ -173,6 +173,7 @@ Antes de mergulhar nos problemas específicos, familiarize-se com a abordagem ge
     1.  **Corrija a Variável:** Na Airflow UI, vá em `Admin` -> `Variables`. Crie uma nova variável com **Key:** `processing_chunk_size` e **Value:** `10` (ou qualquer número inteiro).
     2.  Dispare o DAG novamente. Observe que ele passará pela primeira falha.
     3.  *(Opcional/Discussão em aula):* Se o `IndexError` surgir (dependendo da manipulação de `initial_data.txt`), mostre como o `astro dev run airflow tasks test` para a função `_process_data_with_config_and_logic_error` poderia ter ajudado a isolar o erro de lógica.
+    4.  Para correção do problema de lógica, solicite acesso ao guia de de soluções mais completo que elaborei.
 
 #### Problema 2: Sensor Travado (`problem_stuck_sensor_dag`)
 

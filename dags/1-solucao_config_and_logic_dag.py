@@ -70,6 +70,45 @@ def _process_data_with_config_and_logic_error():
         raise # Re-lança a exceção
 
     # --- PROBLEMA 2: ERRO DE LÓGICA NO CÓDIGO (Slide 13 - Categoria 2: Lógica da Task) ---
+    # Este erro (IndexError) só ocorreria se o arquivo 'raw_data.txt' estivesse vazio.
+    # Agora, a lógica é corrigida para lidar com essa situação.
+    try:
+        # Tenta ler os dados brutos gerados pela tarefa anterior.
+        with open('/tmp/raw_data.txt', 'r') as f:
+            raw_data = f.read()
+
+        processed_lines = [] # Lista para armazenar as linhas processadas
+        lines = raw_data.splitlines() # Divide o conteúdo em uma lista de linhas
+
+        # --- CORREÇÃO PARA O ERRO DE LÓGICA INTENCIONAL ---
+        # Se 'lines' estiver vazio, em vez de gerar um IndexError, a tarefa agora
+        # reconhece que não há dados para processar e prossegue sem falhar.
+        if not lines:
+            print("\n--- CORREÇÃO APLICADA: Dados brutos vazios. Nada para processar nesta etapa. ---")
+            # Garante que o arquivo de saída seja criado (mesmo que vazio),
+            # para que a tarefa seguinte (_load_processed_data_to_destination) não falhe por FileNotFoundError.
+            os.makedirs('/tmp', exist_ok=True) # Garante que o diretório /tmp existe
+            with open('/tmp/processed_data.txt', 'w') as f:
+                f.write("") # Escreve um arquivo vazio
+            print("Arquivo processed_data.txt criado (vazio, pois não havia linhas para processar).")
+            return # A tarefa finaliza com sucesso aqui, sem dados para processar.
+
+        # Se houver linhas, o processamento normal continua.
+        first_line = lines[0] # Esta linha NÃO gerará IndexError se 'lines' não estiver vazio
+        processed_lines.append(first_line.upper()) # Exemplo de processamento: converte a primeira linha para maiúsculas
+
+        # Salva os dados processados em um novo arquivo temporário.
+        with open('/tmp/processed_data.txt', 'w') as f:
+            for line in processed_lines:
+                f.write(line + '\n')
+        print("Dados processados salvos em /tmp/processed_data.txt.")
+
+    except Exception as e:
+        # Captura qualquer outra exceção inesperada durante o processamento.
+        print(f"Erro inesperado durante o processamento: {e}")
+        raise # Re-lança a exceção
+
+    # --- PROBLEMA 2: ERRO DE LÓGICA NO CÓDIGO (Slide 13 - Categoria 2: Lógica da Task) ---
     # Este erro (IndexError) só ocorrerá se o arquivo 'raw_data.txt' estiver vazio,
     # simulando um caso de borda não tratado em um cenário real.
     try:
@@ -137,7 +176,7 @@ def _load_processed_data_to_destination():
 
 # --- Definição do DAG ---
 with DAG(
-    dag_id='problem_config_and_logic_dag', # ID único do DAG
+    dag_id='solucao_config_and_logic_dag', # ID único do DAG
     start_date=datetime(2023, 1, 1), # Data de início do DAG (historicamente)
     # ATENÇÃO: 'schedule_interval' foi substituído por 'schedule' no Airflow 2.x
     schedule=None, # Define o agendamento: None significa que só roda manualmente ou por trigger
