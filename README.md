@@ -204,7 +204,7 @@ Antes de mergulhar nos problemas específicos, familiarize-se com a abordagem ge
     *   **Astro CLI para diagnosticar parsing (Slide 10):**
         Abra um terminal e execute:
         ```bash
-        astro dev run airflow dags parse /usr/local/airflow/dags/problem_dag_parsing_error.py
+        astro dev run airflow dags parse /usr/local/airflow/dags/3-problem_dag_parsing_error.py
         ```
         *Este comando irá simular o processo de parsing do Airflow e reportar o erro de sintaxe diretamente no seu terminal, indicando a linha exata!*
     *   Verifique os logs do Scheduler via `astro dev logs --follow`. Você verá mensagens de `DagFileProcessor` falhando ao carregar o arquivo.
