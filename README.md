@@ -269,10 +269,11 @@ Aqui estão alguns comandos do Astro CLI que serão seus melhores amigos durante
 
 ## 7. Recursos Adicionais
 
-*   **Documentação Oficial do Apache Airflow:** [https://airflow.apache.org/docs/apache-airflow/stable/](https://airflow.apache.org/docs/apache-airflow/stable/) 
-*   **Documentação Oficial do Astro CLI:** [https://docs.astronomer.io/astro/cli/overview](https://docs.astronomer.io/astro/cli/overview) 
+*   **Documentação Oficial do Apache Airflow:** [https://airflow.apache.org/docs/apache-airflow/stable/](https://airflow.apache.org/docs/apache-airflow/stable/)
+*   **Documentação Oficial do Astro CLI:** [https://docs.astronomer.io/astro/cli/overview](https://docs.astronomer.io/astro/cli/overview)
 *   **Artigos sobre Debugging Airflow:** Procure por "Airflow debugging best practices" ou "troubleshooting Airflow DAGs" em blogs como Astronomer, DataCamp, ou Medium.
 
 ## 8. Contribuição (Opcional)
 
 Sinta-se à vontade para sugerir melhorias neste case, adicionar novos cenários de problemas ou aprimorar as explicações. Abra uma `Iss
+Elaborei um documento no google docs que está mais completo e explica em mais detalhes os códigos e o que falei na apresentação. Quem tiver interesse, é só pedir!
