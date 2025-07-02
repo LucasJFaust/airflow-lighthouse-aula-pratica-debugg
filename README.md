@@ -277,3 +277,5 @@ Aqui estão alguns comandos do Astro CLI que serão seus melhores amigos durante
 
 Sinta-se à vontade para sugerir melhorias neste case, adicionar novos cenários de problemas ou aprimorar as explicações. Abra uma `Iss
 Elaborei um documento no google docs que está mais completo e explica em mais detalhes os códigos e o que falei na apresentação. Quem tiver interesse, é só pedir!
+
+# PLUS-ULTRA (Em elaboração)
