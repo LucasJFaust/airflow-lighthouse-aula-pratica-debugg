@@ -99,6 +99,7 @@ Siga estes passos para configurar e iniciar seu ambiente Airflow local. **Leia c
 
 Entender a estrutura do projeto é crucial para a navegação e o debugging:
 seu-repositorio-de-aula/
+```
 ├── dags/ # Contém os arquivos Python das DAGs
 │ ├── problem_config_and_logic_dag.py # Problema 1: Variável e Lógica
 │ ├── problem_stuck_sensor_dag.py # Problema 2: Sensor que trava
@@ -111,7 +112,7 @@ seu-repositorio-de-aula/
 ├── .env # Arquivo de variáveis de ambiente (se usado)
 ├── requirements.txt # Lista de pacotes Python para o ambiente Airflow
 ├── docker-compose.yaml # Arquivo Docker Compose gerado pelo Astro CLI └── README.md # Este arquivo!
-
+```
 
 ## 5. O Case Técnico - Cenários de Problemas (e como diagnosticá-los!)
 
