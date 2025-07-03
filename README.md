@@ -272,10 +272,307 @@ Aqui estão alguns comandos do Astro CLI que serão seus melhores amigos durante
 *   **Documentação Oficial do Apache Airflow:** [https://airflow.apache.org/docs/apache-airflow/stable/](https://airflow.apache.org/docs/apache-airflow/stable/)
 *   **Documentação Oficial do Astro CLI:** [https://docs.astronomer.io/astro/cli/overview](https://docs.astronomer.io/astro/cli/overview)
 *   **Artigos sobre Debugging Airflow:** Procure por "Airflow debugging best practices" ou "troubleshooting Airflow DAGs" em blogs como Astronomer, DataCamp, ou Medium.
+*   **Doc que mostra o passo a passo para elaborar um projeto com o Astro CLI:** https://www.astronomer.io/docs/astro/cli/develop-project
 
 ## 8. Contribuição (Opcional)
 
 Sinta-se à vontade para sugerir melhorias neste case, adicionar novos cenários de problemas ou aprimorar as explicações. Abra uma `Iss
 Elaborei um documento no google docs que está mais completo e explica em mais detalhes os códigos e o que falei na apresentação. Quem tiver interesse, é só pedir!
 
-# PLUS-ULTRA (Em elaboração)
+# PLUS-ULTRA
+
+Vamos lá pessoal! Vou  tentar colocar alguns tópicos aqui aque possam ter relavância para vocês. Lembrem-se **O material vai ser introdutório! Programar e desenvolver é a arte de procurar documentações e tutoriais kkk. Então por favor, não se limitem ao conteúdo deste arquivo** Espero ajudar vocês! Bora lá!
+
+**Contexto**: Muitos de vocês vão precisar orquestrar fluxos de dados que envolvem ferramentas de extração (como Meltano, Embulk) ou de computação (como Databricks CLI para jobs no Spark). A grande sacada do Airflow é ser o maestro que coordena todas essas ferramentas.
+**A Filosofia**: O Airflow não processa dados; ele orquestra quem processa. Para que o Airflow orquestre Meltano, Embulk ou Databricks CLI, essas ferramentas precisam estar disponíveis e acessíveis no ambiente onde a task do Airflow está rodando (geralmente o Worker do Airflow).
+O Astro CLI facilita isso porque ele controla a construção do ambiente Docker do Airflow.
+
+## 1. Preparando Seu Ambiente Astro para Ferramentas Externas
+No seu projeto astro (aquele que você criou com astro dev init), você tem arquivos-chave para adicionar dependências:
+- ``requirements.txt``: Para dependências Python. Se Meltano, dbt, ou SDKs (como azure-storage-blob, boto3 para AWS) são pacotes Python, coloque-os aqui.
+
+``` yml
+# Exemplo de requirements.txt
+apache-airflow-providers-cncf-kubernetes # Se for usar DockerOperator
+meltano
+dbt-core
+dbt-bigquery
+databricks-cli
+```
+- ``packages.txt``: Para dependências de nível de sistema operacional (Linux packages - apt-get). Se a ferramenta precisar de algo como openjdk, git, curl, coloque aqui.
+
+```yml
+# Exemplo de packages.txt
+git
+openjdk-17-jdk # Para ferramentas Java-based como Embulk
+```
+
+``Dockerfile``: Para customizações mais avançadas (instalar algo de um repositório específico, compilar algo, etc.). Você pode estender a imagem base do Airflow aqui.
+
+```yml
+# Exemplo de Dockerfile (no seu projeto Astro)
+FROM quay.io/astronomer/astro-runtime:x.x.x-pythonx.x # Use a versão do runtime que você usa
+# Instalar Meltano de um fork específico (exemplo avançado)
+RUN pip install git+https://github.com/your-fork/meltano.git@main
+# Instalar Embulk manualmente (se não for via apt)
+RUN curl --create-dirs -o /usr/local/bin/embulk -L "https://dl.embulk.org/embulk-latest.jar"
+RUN chmod +x /usr/local/bin/embulk
+```
+- Quando usar qual:
+  - requirements.txt: 90% dos casos para Python. Simples e rápido.
+  - packages.txt: Para bibliotecas C/C++, Java, ou executáveis que não são Python.
+  - Dockerfile: Se as outras opções não forem suficientes, ou para instalações muito específicas/manuais.
+
+## 2. Exemplo 1: Orquestrando Meltano com Airflow (via BashOperator)
+
+Meltano é uma ferramenta Python, então o caminho mais comum é instalá-lo via requirements.txt.
+
+### 2.1. Adicione Meltano ao ``requirements.txt``:
+
+```yml
+# requirements.txt
+meltano
+```
+
+### 2.2. **Crie seu Projeto Meltano**: O ideal é que seu projeto Meltano esteja dentro do seu projeto Astro, por exemplo, na pasta dags/meltano_project/. Isso garante que ele será empacotado junto com suas DAGs.
+```
+# Estrutura do seu projeto Astro
+.
+├── dags/
+│   ├── sua_dag_meltano.py
+│   └── meltano_project/  # Seu projeto Meltano aqui
+│       ├── meltano.yml
+│       ├── extract/
+│       └── ...
+├── requirements.txt
+├── packages.txt
+└── Dockerfile
+```
+
+### 2.4. Crie sua DAG (``sua_dag_meltano.py``): Use o BashOperator para chamar os comandos meltano.
+
+```python
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from airflow.utils.dates import days_ago
+from datetime import timedelta
+
+with DAG(
+    dag_id='meltano_pipeline',
+    start_date=days_ago(1),
+    schedule_interval=timedelta(days=1),
+    catchup=False,
+    tags=['meltano', 'etl'],
+) as dag:
+    # Define o caminho base para o seu projeto Meltano dentro do container do Airflow.
+    # Geralmente é /usr/local/airflow/dags/nome_da_sua_pasta_meltano
+    MELTANO_PROJECT_PATH = "/usr/local/airflow/dags/meltano_project/"
+
+    # Task para rodar a extração e carga com Meltano
+    run_meltano_elt = BashOperator(
+        task_id='extract_load_data',
+        # Comando Meltano a ser executado
+        bash_command=f"cd {MELTANO_PROJECT_PATH} && meltano elt tap-rest-api target-json --full-refresh",
+        # O 'cwd' pode ser usado, mas 'cd' no bash_command é mais explícito
+    )
+
+    # Task para rodar transformações com dbt (se você usa Meltano + dbt)
+    run_meltano_dbt_transform = BashOperator(
+        task_id='transform_data',
+        bash_command=f"cd {MELTANO_PROJECT_PATH} && meltano elt tap-rest-api target-json --transform=run",
+    )
+
+    run_meltano_elt >> run_meltano_dbt_transform
+```
+
+## 3. Teste Localmente com Astro CLI:
+- Se for usar o Astro CLI vocês vão ter que executar antes de tudo o ``astro dev init``
+- Suba seu ambiente: astro dev start (ele vai reconstruir a imagem Docker para instalar o Meltano).
+- Verifique a instalação do Meltano (importante!):
+astro dev exec meltano --version
+- Se ele retornar a versão do Meltano, está tudo certo!
+- Dispare a DAG na UI local: Acesse http://localhost:8080, encontre meltano_pipeline e dispare um DAG Run. Monitore os logs da task.
+
+## 4.  Exemplo 2: Orquestrando Embulk com Airflow (via BashOperator)
+Embulk é uma ferramenta baseada em Java. Isso significa que você precisará ter o Java Runtime Environment (JRE) instalado no ambiente do Worker do Airflow.
+
+### 4.1. Adicione Java ao packages.txt:
+```yml
+# packages.txt
+openjdk-17-jdk
+```
+
+### 4.2. Baixe o Embulk: O Embulk é um JAR executável. Você pode baixá-lo e colocá-lo na pasta include/ do seu projeto Astro, por exemplo.
+```
+# Estrutura
+.
+├── dags/
+│   └── sua_dag_embulk.py
+├── include/
+│   └── embulk  # Aqui estará o JAR do Embulk
+├── requirements.txt
+├── packages.txt
+└── Dockerfile
+```
+
+### 4.3. Como baixar o Embulk no ``include/``:
+
+```bash
+cd include
+curl --create-dirs -o embulk -L "https://dl.embulk.org/embulk-latest.jar"
+chmod +x embulk # Torna o arquivo executável. Esse comando é importante. Se vcs não executarem ele vai dar erro.
+cd .. # Volta para a raiz do projeto Astro
+```
+
+### 4.4. Crie sua DAG (``sua_dag_embulk.py``): Use o BashOperator para chamar o JAR do Embulk.
+
+```python
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from airflow.utils.dates import days_ago
+from datetime import timedelta
+
+with DAG(
+    dag_id='embulk_pipeline',
+    start_date=days_ago(1),
+    schedule_interval=timedelta(days=1),
+    catchup=False,
+    tags=['embulk', 'etl'],
+) as dag:
+    # Define o caminho para o executável do Embulk e seus arquivos de configuração
+    EMBULK_BIN_PATH = "/usr/local/airflow/include/embulk"
+    EMBULK_CONFIG_PATH = "/usr/local/airflow/dags/embulk_configs/" # Pasta com seus YMLs de config
+
+    # Task para rodar um job do Embulk
+    run_embulk_job = BashOperator(
+        task_id='run_data_ingestion',
+        bash_command=f"java -jar {EMBULK_BIN_PATH} run {EMBULK_CONFIG_PATH}my_config.yml",
+        # Pode ser necessário adicionar -Dembulk.home=... se você usar plugins complexos
+```
+
+### 4.5. Verifique a instalação do Java e Embulk:
+
+```bash
+astro dev exec java --version
+astro dev exec java -jar /usr/local/airflow/include/embulk --version
+Dispare a DAG na UI local: Acesse http://localhost:8080, encontre embulk_pipeline e dispare um DAG Run.
+```
+
+## 5. Exemplo 3: Databricks CLI e o Poder do ``DockerOperator``
+A Databricks CLI é uma ferramenta Python (databricks-cli), mas a sacada aqui é introduzir o DockerOperator.
+
+### 5.1. Adicione ``apache-airflow-providers-cncf-kubernetes`` ao ``requirements.txt``: O ``DockerOperator`` faz parte desse provider.
+
+### 5.2. Crie uma Imagem Docker com o Databricks CLI (Opcional, mas recomendado): Se você não quiser usar uma imagem pronta da Databricks, pode criar a sua.
+
+### 5.3. Exemplo de Dockerfile.databricks (em uma pasta docker_images/ no seu projeto Astro):
+
+```docker
+# Imagem base Python, ou algo mais leve
+FROM python:3.9-slim-buster
+
+# Instala o Databricks CLI
+RUN pip install databricks-cli
+
+# Define um ponto de entrada padrão (opcional)
+ENTRYPOINT ["databricks"]
+```
+
+### 5.5. Construa a imagem:
+
+```docker
+docker build -t my-databricks-cli-image -f docker_images/Dockerfile.databricks .
+```
+
+### 5.5. Construa a imagem:
+
+```python
+from airflow import DAG
+from airflow.operators.docker import DockerOperator
+from airflow.utils.dates import days_ago
+from datetime import timedelta
+
+with DAG(
+    dag_id='databricks_cli_pipeline',
+    start_date=days_ago(1),
+    schedule_interval=timedelta(days=1),
+    catchup=False,
+    tags=['databricks', 'cli', 'docker'],
+) as dag:
+    # Configurações do DockerOperator
+    # imagem: A imagem Docker que será usada para rodar esta task.
+    #         Pode ser uma imagem do Docker Hub (ex: python:3.9-slim)
+    #         ou uma imagem que você construiu localmente (my-databricks-cli-image).
+    # command: O comando a ser executado dentro do container.
+    # environment: Variáveis de ambiente a serem passadas para o container.
+    #              CRUCIAL para credenciais (DB_HOST, DB_TOKEN)!
+    #              Use Connections do Airflow para gerenciar isso de forma segura!
+
+    # Exemplo com Databricks CLI: Executar um notebook
+    run_databricks_notebook = DockerOperator(
+        task_id='run_my_databricks_notebook',
+        image='my-databricks-cli-image', # Ou uma imagem oficial que contenha o CLI
+        command="databricks jobs run-now --job-id 12345 --host $DATABRICKS_HOST --token $DATABRICKS_TOKEN",
+        environment={
+            # Estes devem vir de Connections do Airflow para produção!
+            # Para local, pode ser via variáveis de ambiente no Dockerfile ou .env do Astro CLI
+            "DATABRICKS_HOST": "{{ conn.databricks_default.host }}",
+            "DATABRICKS_TOKEN": "{{ conn.databricks_default.password }}"
+        },
+        network_mode="bridge", # Para que o container possa acessar a rede
+        # mount_tmp_dir: True # Para permitir que o container use /tmp
+    )
+
+    # Exemplo com Meltano usando DockerOperator (se você tivesse uma imagem Meltano)
+    # run_meltano_in_docker = DockerOperator(
+    #     task_id='run_meltano_in_isolated_container',
+    #     image='my-meltano-image:latest', # Imagem Docker com Meltano pré-instalado
+    #     command='meltano elt tap-rest-api target-json',
+    #     # mounts=... # Para montar o volume do projeto Meltano se ele não estiver na imagem
+    # )
+```
+
+### 5.6. Configuração de Credenciais:
+
+- **Crucial**: Nunca coloque credenciais diretamente no código da DAG! Use as **Connections do Airflow**.
+- Para o ``DockerOperator``, você pode puxar as credenciais das Connections do Airflow e passá-las como variáveis de ambiente para o container.
+- Localmente com Astro CLI:
+  - Você pode configurar essas Connections na UI local (Admin > Connections).
+  - Ou, se estiver usando a funcionalidade de .env do Astro CLI, pode definir variáveis de ambiente que o Astro CLI passará para o Airflow.
+  - ``DATABRICKS_HOST`` e ``DATABRICKS_TOKEN`` precisam estar acessíveis para o container do DockerOperator.
+
+### 5.6. Teste Localmento com Astro CLI executando ``astro dev start``
+
+### 5.7. Verifique se o docker está funcionando dentro do worker (importante para DockerOperator):
+
+```bash
+astro dev exec docker ps
+# Você deve ver os containers do seu ambiente Airflow. Isso confirma que o Docker está acessível para o Worker.
+```
+
+### 5.8. Dispare a DAG na UI local: Acesse http://localhost:8080, encontre databricks_cli_pipeline e dispare um DAG Run.
+
+## Conclusão
+Como vocês puderam ver, o Astro CLI não é apenas uma ferramenta para ligar e desligar o Airflow. Ele é o seu portal para um desenvolvimento de dados robusto e orquestrado. Ao entender como ele gerencia o ambiente Docker e como você pode integrar suas ferramentas favoritas (Meltano, Embulk, Databricks CLI, etc.) via ``requirements.txt``, ``packages.txt``, ``Dockerfile`` e, especialmente, o ``DockerOperator``, vocês estarão prontos para construir pipelines de dados de nível profissional.
+Continuem explorando e testando! O conhecimento vem da prática.
+
+
+# 🚨 AVISO AOS NAVEGANTES DE DADOS 🚨
+
+Queridos Lighthouses e aspirantes a domadores de pipelines,
+
+Não vai adiantar fazer CTRL+C e CTRL+V neste tutorial como se fosse um docker pull da sabedoria! Dei apenas um SELECT * FROM conhecimento LIMIT 10 nas etapas essenciais, mas isso não vai te salvar de ter que fazer um JOIN com as documentações oficiais!
+
+Como já comentei em algum commit perdido deste README (talvez em uma branch que nem existe mais 😂), desenvolver é basicamente a arte de ler documentações enquanto chora silenciosamente para o seu café. É como configurar um DAG no Airflow: parece simples na teoria, mas na prática você acaba com 37 abas abertas no navegador e questionando suas escolhas de vida. Faz parte do processo, mas, acreditem!
+
+Lembrem-se:
+
+- O Airflow não perdoa quem não lê a documentação (ele vai falhar às 3h da manhã de um domingo)
+- O Docker vai quebrar de formas que você nem imaginava possíveis
+- O Meltano vai te fazer questionar por que não escolheu ser fazendeiro
+- O Databricks vai te cobrar por recursos que você nem sabia que estava usando
+- E o Embulk... bem, se você conseguir fazer o Embulk funcionar de primeira, por favor escreva um livro e me dá de presente kkk
+
+Espero, de coração, ter ajudado um pouco vocês nessa jornada.
+
+Fico à disposição para mais dicas ou para chorar junto sobre YAMLs mal indentados!
